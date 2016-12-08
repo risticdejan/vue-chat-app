@@ -32,13 +32,19 @@
 </template>
 
 <script>
+    import io from 'socket.io-client'
+    var socket = io('http://localhost:3000');
+
     export default {
-        name: 'chat'
+        name: 'chat',
+        mounted() {
+            console.log('Component: The chat is ready')
+        }
     }
 </script>
 
 
-<style scoped>
+<style>
     .chat {
         background: #fff;
         position: relative;

@@ -59,6 +59,18 @@ app.use(hotMiddleware)
 var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 app.use(staticPath, express.static('./static'))
 
+var server = require('http').createServer(app)
+var io = require('socket.io')(server)
+
+io.on('connection', function(socket) {
+    console.log('Connected to socket.')
+    socket.on('disconnect', function () {
+        console.log('Disconnected')
+    });
+});
+
+server.listen(3000)
+
 module.exports = app.listen(port, function (err) {
   if (err) {
     console.log(err)
