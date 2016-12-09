@@ -3,6 +3,12 @@
         <header>
             <h4>
                 Chat:
+                <span>
+                    {{ username }}
+                </span>
+                <span style="float: right;">
+                    Users: {{ numberOfUsers }}
+                </span>
             </h4>
         </header>
         <section class="chat-container">
@@ -24,8 +30,10 @@
         </section>
         <footer>
             <input class="new-user"
+                v-show="connected"
                 autofocus
                 placeholder="What's your nickname?"
+                @keyup.enter="addUser"
             />
         </footer>
     </section>
@@ -37,8 +45,39 @@
 
     export default {
         name: 'chat',
+        data() {
+            return {
+                connected: true,
+                username: '',
+                numberOfUsers: 0,
+            }
+        },
         mounted() {
-            console.log('Component: The chat is ready')
+            this.$nextTick( () => {
+                socket.on('login',  (data) => {
+                    this.connected = false;
+                    this.username = data.username;
+                    this.numberOfUsers = data.numUsers;
+                });
+
+                socket.on('user joined', (data) => this.numberOfUsers = data.numUsers);
+
+                socket.on('user left', (data) => this.numberOfUsers = data.numUsers);
+            })
+        },
+        methods: {
+            addUser(e) {
+                this.sendInput(e, 'add user')
+            },
+            sendInput(e, eventName) {
+                const input = e.target.value
+
+                if(input.trim() ) {
+                    socket.emit(eventName, input)
+                }
+
+                e.target.value = ''
+            }
         }
     }
 </script>

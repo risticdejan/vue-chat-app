@@ -61,11 +61,51 @@ app.use(staticPath, express.static('./static'))
 
 var server = require('http').createServer(app)
 var io = require('socket.io')(server)
+var numUsers = 0;
 
 io.on('connection', function(socket) {
-    console.log('Connected to socket.')
+    var addedUser = false;
+
+    socket.on('send message', function(data) {
+        io.emit('new message', {
+            body: data,
+            username: socket.username,
+            color: socket.color,
+            numUsers: numUsers
+        });
+    });
+
+    socket.on('add user', function(username) {
+        if (addedUser) return;
+
+        socket.username = username;
+        socket.color =  "rgb("+parseInt(Math.random()*255,10)+","+parseInt(Math.random()*255,10)+","+parseInt(Math.random()*255,10)+")";
+        ++numUsers;
+        addedUser = true;
+
+        socket.emit('login', {
+            username: socket.username,
+            color: socket.color,
+            numUsers: numUsers
+        });
+
+        socket.broadcast.emit('user joined', {
+            username: socket.username,
+            color: socket.color,
+            numUsers: numUsers
+        });
+    });
+
     socket.on('disconnect', function () {
-        console.log('Disconnected')
+        if (addedUser) {
+            --numUsers;
+
+            socket.broadcast.emit('user left', {
+                username: socket.username,
+                color: socket.color,
+                numUsers: numUsers
+            });
+        }
     });
 });
 
