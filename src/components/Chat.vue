@@ -12,23 +12,20 @@
             </h4>
         </header>
         <section class="chat-container">
-            <ul>
-                <li class="message">
-                    <div class="details">
-                        <span>
-                            <i class="glyphicon glyphicon-record"></i> <b>Admin</b>
-                        </span>
-                        <span style="float: right">
-                            10:22:43 PM
-                        </span>
-                    </div>
-                    <div class="content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam scelerisque pretium mauris sed feugiat. Suspendisse malesuada ex eget elit dapibus euismod.
-                    </div>
-                </li>
+            <ul ref="list">
+                <message v-for="message in messages"
+                    :message="message"
+                >
+                </message>
             </ul>
         </section>
         <footer>
+            <input class="new-msg"
+                v-show="! connected"
+                v-focus="! connected"
+                placeholder="Type your message here..."
+                @keyup.enter="sendMessage"
+            />
             <input class="new-user"
                 v-show="connected"
                 autofocus
@@ -42,9 +39,23 @@
 <script>
     import io from 'socket.io-client'
     var socket = io('http://localhost:3000');
+    import Message from './Message.vue'
+    import { mapMutations } from 'vuex'
 
     export default {
         name: 'chat',
+        components: {
+            Message
+        },
+        directives: {
+            focus (el, { value }, { context }) {
+                if (value) {
+                    context.$nextTick(() => {
+                        el.focus()
+                    })
+                }
+            }
+        },
         data() {
             return {
                 connected: true,
@@ -52,20 +63,55 @@
                 numberOfUsers: 0,
             }
         },
+        computed: {
+            messages() {
+                return this.$store.state.messages
+            }
+        },
         mounted() {
             this.$nextTick( () => {
-                socket.on('login',  (data) => {
-                    this.connected = false;
-                    this.username = data.username;
+
+                socket.on('new message', data => {
+                    this.addMessage(data);
                     this.numberOfUsers = data.numUsers;
                 });
 
-                socket.on('user joined', (data) => this.numberOfUsers = data.numUsers);
+                socket.on('login',  data => {
+                    this.connected = false;
+                    this.username = data.username;
+                    this.numberOfUsers = data.numUsers;
 
-                socket.on('user left', (data) => this.numberOfUsers = data.numUsers);
+                    data.body = "Welcome to Chat ";
+                    this.addMessage(data);
+                });
+
+                socket.on('user joined', data => {
+                    this.numberOfUsers = data.numUsers;
+
+                    data.body = data.username + " has joined us.";
+                    this.addMessage(data);
+                });
+
+                socket.on('user left', data => {
+                    this.numberOfUsers = data.numUsers;
+
+                    data.body = data.username + ' has left us.';
+                    this.addMessage(data);
+                });
             })
         },
+        watch: {
+            'messages': function () {
+                this.$nextTick(() => {
+                    const ul = this.$refs.list
+                    ul.scrollTop = ul.scrollHeight
+                })
+            }
+        },
         methods: {
+            sendMessage(e) {
+                this.sendInput(e, 'send message')
+            },
             addUser(e) {
                 this.sendInput(e, 'add user')
             },
@@ -77,7 +123,10 @@
                 }
 
                 e.target.value = ''
-            }
+            },
+            ...mapMutations([
+                'addMessage'
+            ])
         }
     }
 </script>
