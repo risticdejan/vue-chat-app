@@ -4,7 +4,7 @@
 
 ## Build Setup
 
-``` bash
+```bash
 # install dependencies
 npm install
 
@@ -23,3 +23,7 @@ npm run e2e
 # run all tests
 npm test
 ```
+
+## Preview
+
+![New Blog](chat.png)
