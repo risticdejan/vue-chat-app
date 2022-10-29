@@ -12,7 +12,7 @@
     "test": "npm run unit && npm run e2e"
   },
   "dependencies": {
-    "socket.io": "^1.7.1",
+    "socket.io": "^4.5.3",
     "vue": "^2.1.0",
     "vuex": "^2.0.0"
   },
@@ -35,7 +35,7 @@
     "html-webpack-plugin": "^2.8.1",
     "http-proxy-middleware": "^0.17.2",
     "json-loader": "^0.5.4",
-    "karma": "^1.3.0",
+    "karma": "^6.4.1",
     "karma-coverage": "^1.1.1",
     "karma-mocha": "^1.2.0",
     "karma-phantomjs-launcher": "^1.0.0",
